@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-This a small wrapper around Google Maps API v3. Inspired by googlemaps by John Kleint.
+This a small wrapper around Google Maps API v3. Mostly based on googlemaps by John Kleint.
 """
 
 import json
@@ -14,6 +14,68 @@ import requests
 _GEOCODE_QUERY_URL = 'http://maps.googleapis.com/maps/api/geocode/json?'
 _DIRECTIONS_QUERY_URL = 'http://maps.googleapis.com/maps/api/directions/json?'
 _DISTANCEMATRIX_QUERY_URL = 'http://maps.googleapis.com/maps/api/distancematrix/json?'
+
+
+class GoogleMapsError(Exception):
+    """
+    Base class for errors and exceptions.
+    """
+    #: See http://code.google.com/apis/maps/documentation/geocoding/index.html#StatusCodes
+    #: for information on the meaning of these status codes.
+    G_GEO_SUCCESS = 200
+    G_GEO_SERVER_ERROR = 500
+    G_GEO_MISSING_QUERY = 601
+    G_GEO_UNKNOWN_ADDRESS = 602
+    G_GEO_UNAVAILABLE_ADDRESS = 603
+    G_GEO_BAD_KEY = 610
+    G_GEO_TOO_MANY_QUERIES = 620
+
+    _STATUS_MESSAGES = {
+        G_GEO_SUCCESS: 'G_GEO_SUCCESS',
+        G_GEO_SERVER_ERROR: 'G_GEO_SERVER_ERROR',
+        G_GEO_MISSING_QUERY: 'G_GEO_MISSING_QUERY',
+        G_GEO_UNKNOWN_ADDRESS: 'G_GEO_UNKNOWN_ADDRESS',
+        G_GEO_UNAVAILABLE_ADDRESS: 'G_GEO_UNAVAILABLE_ADDRESS',
+        G_GEO_BAD_KEY: 'G_GEO_BAD_KEY',
+        G_GEO_TOO_MANY_QUERIES: 'G_GEO_TOO_MANY_QUERIES',
+    }
+
+    def __init__(self, status, response=None):
+        """
+        Create an exception with a status and optional full response.
+
+        :param status: Either a ``G_GEO_`` code or a string explaining the
+         exception.
+        :type status: int or string
+
+        :param response: The actual response returned from Google, if any.
+        :type response: dict
+        """
+        Exception.__init__(self, status)
+        self.status = status
+        self.response = response
+
+    def __str__(self):
+        """
+        Return a string representation of this :exc:`GoogleMapsError`.
+        """
+        if self.status in self._STATUS_MESSAGES:
+            if self.response is not None and 'responseDetails' in self.response:
+                retval = 'Error %d: %s' % (self.status, self.response['responseDetails'])
+            else:
+                retval = 'Error %d: %s' % (self.status, self._STATUS_MESSAGES[self.status])
+        else:
+            retval = str(self.status)
+        return retval
+
+    def __unicode__(self):
+        """
+        Return a unicode representation of this :exc:`GoogleMapsError`.
+        """
+        return unicode(self.__str__())
+
+
+STATUS_OK = GoogleMapsError.G_GEO_SUCCESS
 
 
 def fetch_json(query_url, params={}, headers={}, verbose=False):
@@ -61,11 +123,17 @@ def _make_request(url, params, verbose=False):
     :param verbose:
     :type verbose: bool
 
-    :return: Raw response
-    :rtype: Response
+    :return: Response in json
+    :rtype: dict
     """
     response = fetch_json(url, params=params, verbose=verbose)
-    return response
+    text = json.loads(response.text)
+
+    status_code = text['status']
+    if status_code != STATUS_OK:
+            raise GoogleMapsError(status_code, response=response)
+
+    return text
 
 
 def directions_request(origin, destination, sensor='false', mode='driving', waypoints=None, destination_time=None,
@@ -112,8 +180,7 @@ def directions_request(origin, destination, sensor='false', mode='driving', wayp
         'arrival_time': arrival_time
     }
 
-    response = _make_request(url=_DIRECTIONS_QUERY_URL, params=params, verbose=verbose)
-    return json.loads(response.text)
+    return _make_request(url=_DIRECTIONS_QUERY_URL, params=params, verbose=verbose)
 
 
 def distancematrix_request(origins, destinations, sensor='false', mode='driving', waypoints=None, destination_time=None,
@@ -160,8 +227,7 @@ def distancematrix_request(origins, destinations, sensor='false', mode='driving'
         'arrival_time': arrival_time
     }
 
-    response = _make_request(url=_DISTANCEMATRIX_QUERY_URL, params=params, verbose=verbose)
-    return json.loads(response.text)
+    return _make_request(url=_DISTANCEMATRIX_QUERY_URL, params=params, verbose=verbose)
 
 
 def get_time(origin, destination, sensor='false', mode='driving', waypoints=None, destination_time=None,
