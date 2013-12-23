@@ -2,19 +2,20 @@
 # -*- coding: utf-8 -*-
 
 """
-This a small wrapper around Google Maps APi v3. Inspired by googlemaps by John Kleint.
+This a small wrapper around Google Maps API v3. Inspired by googlemaps by John Kleint.
 """
 
 import json
-import requests
 from urllib import urlencode
+
+import requests
 
 
 _DIRECTIONS_QUERY_URL = 'http://maps.googleapis.com/maps/api/directions/json?'
 _DISTANCEMATRIX_QUERY_URL = 'http://maps.googleapis.com/maps/api/distancematrix/json?'
 
 
-def fetch_json(query_url, params={}, headers={}):
+def fetch_json(query_url, params={}, headers={}, silent=True):
     """
     Retrieves a JSON object from a (parameterized) URL.
 
@@ -27,6 +28,9 @@ def fetch_json(query_url, params={}, headers={}):
     :param headers: Dictionary giving (string) HTTP headers and values
     :type headers: dict
 
+    :param silent:
+    :type silent: bool
+
     :return: Response obj (from requests), constructed from the data fetched from that URL.
     :rtype: requests.Response
     """
@@ -36,12 +40,15 @@ def fetch_json(query_url, params={}, headers={}):
 
     encoded_params = urlencode(params)
     url = query_url + encoded_params
-    print url
+
+    if not silent:
+        print url
+
     return requests.get(url, headers=headers)
 
 
 def directions_request(origin, destination, sensor='false', mode='driving', waypoints=None, destination_time=None,
-                       arrival_time=None):
+                       arrival_time=None, silent=True):
     """
     Makes a request to Google Maps Api Directions
     See https://developers.google.com/maps/documentation/directions/#DirectionsRequests for additional information
@@ -67,6 +74,9 @@ def directions_request(origin, destination, sensor='false', mode='driving', wayp
     :param arrival_time: Specifies the desired time of arrival for transit directions as seconds since midnight, January 1, 1970 UTC
     :type arrival_time: int
 
+    :param silent:
+    :type silent: bool
+
     :return: Dict obj, constructed from the result data
     :rtype: dict
     """
@@ -81,12 +91,12 @@ def directions_request(origin, destination, sensor='false', mode='driving', wayp
         'arrival_time': arrival_time
     }
 
-    response = fetch_json(_DIRECTIONS_QUERY_URL, params=params)
+    response = fetch_json(_DIRECTIONS_QUERY_URL, params=params, silent=silent)
     return json.loads(response.text)
 
 
 def distancematrix_request(origins, destinations, sensor='false', mode='driving', waypoints=None, destination_time=None,
-                           arrival_time=None):
+                           arrival_time=None, silent=True):
     """
     Makes a request to Google Maps Api DistanceMatrix
     See https://developers.google.com/maps/documentation/distancematrix/ for additional information
@@ -112,6 +122,9 @@ def distancematrix_request(origins, destinations, sensor='false', mode='driving'
     :param arrival_time: Specifies the desired time of arrival for transit directions as seconds since midnight, January 1, 1970 UTC
     :type arrival_time: int
 
+    :param silent:
+    :type silent: bool
+
     :return: Dict obj, constructed from the result data
     :rtype: dict
     """
@@ -126,12 +139,12 @@ def distancematrix_request(origins, destinations, sensor='false', mode='driving'
         'arrival_time': arrival_time
     }
 
-    response = fetch_json(_DISTANCEMATRIX_QUERY_URL, params=params)
+    response = fetch_json(_DISTANCEMATRIX_QUERY_URL, params=params, silent=silent)
     return json.loads(response.text)
 
 
 def get_time(origin, destination, sensor='false', mode='driving', waypoints=None, destination_time=None,
-             arrival_time=None):
+             arrival_time=None, silent=True):
     """
     Returns travel time
 
@@ -156,6 +169,9 @@ def get_time(origin, destination, sensor='false', mode='driving', waypoints=None
     :param arrival_time: Specifies the desired time of arrival for transit directions as seconds since midnight, January 1, 1970 UTC
     :type arrival_time: int
 
+    :param silent:
+    :type silent: bool
+
     :return: Seconds to travel
     :rtype: int
     """
@@ -165,7 +181,7 @@ def get_time(origin, destination, sensor='false', mode='driving', waypoints=None
 
 
 def get_distance(origin, destination, sensor='false', mode='driving', waypoints=None, destination_time=None,
-                 arrival_time=None):
+                 arrival_time=None, silent=True):
     """
     Returns distance, in metres
 
@@ -190,12 +206,15 @@ def get_distance(origin, destination, sensor='false', mode='driving', waypoints=
     :param arrival_time: Specifies the desired time of arrival for transit directions as seconds since midnight, January 1, 1970 UTC
     :type arrival_time: int
 
+    :param silent:
+    :type silent: bool
+
     :return: Metres to travel
     :rtype: int
     """
 
-    return distancematrix_request(origin, destination, sensor, mode, waypoints, destination_time, arrival_time)[
-        'rows'][0]['elements'][0]['distance']['value']
+    return distancematrix_request(origin, destination, sensor, mode, waypoints, destination_time, arrival_time,
+                                  silent=silent)['rows'][0]['elements'][0]['distance']['value']
 
 
 if __name__ == '__main__':
@@ -214,11 +233,6 @@ if __name__ == '__main__':
 
         '''
         a = directions_request(origin='Київ, Сєченова 6', destination='Київ, Сєченова 9', mode='walking')
-        print a
-        '''
-
-        '''
-        a = get_time(origin='Киев', destination='Львов', mode='transit')
         print a
         '''
 
