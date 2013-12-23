@@ -48,6 +48,26 @@ def fetch_json(query_url, params={}, headers={}, verbose=False):
     return requests.get(url, headers=headers)
 
 
+def _make_request(url, params, verbose=False):
+    """
+    Makes a request to given url with given params.
+
+    :param url:
+    :type url: str
+
+    :param params: Dict of params we pass to url
+    :type params: dict
+
+    :param verbose:
+    :type verbose: bool
+
+    :return: Raw response
+    :rtype: Response
+    """
+    response = fetch_json(url, params=params, verbose=verbose)
+    return response
+
+
 def directions_request(origin, destination, sensor='false', mode='driving', waypoints=None, destination_time=None,
                        arrival_time=None, verbose=False):
     """
@@ -92,7 +112,7 @@ def directions_request(origin, destination, sensor='false', mode='driving', wayp
         'arrival_time': arrival_time
     }
 
-    response = fetch_json(_DIRECTIONS_QUERY_URL, params=params, verbose=verbose)
+    response = _make_request(url=_DIRECTIONS_QUERY_URL, params=params, verbose=verbose)
     return json.loads(response.text)
 
 
@@ -140,7 +160,7 @@ def distancematrix_request(origins, destinations, sensor='false', mode='driving'
         'arrival_time': arrival_time
     }
 
-    response = fetch_json(_DISTANCEMATRIX_QUERY_URL, params=params, verbose=verbose)
+    response = _make_request(url=_DISTANCEMATRIX_QUERY_URL, params=params, verbose=verbose)
     return json.loads(response.text)
 
 
