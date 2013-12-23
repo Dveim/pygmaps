@@ -11,13 +11,14 @@ from urllib import urlencode
 import requests
 
 
+_GEOCODE_QUERY_URL = 'http://maps.googleapis.com/maps/api/geocode/json?'
 _DIRECTIONS_QUERY_URL = 'http://maps.googleapis.com/maps/api/directions/json?'
 _DISTANCEMATRIX_QUERY_URL = 'http://maps.googleapis.com/maps/api/distancematrix/json?'
 
 
-def fetch_json(query_url, params={}, headers={}, silent=True):
+def fetch_json(query_url, params={}, headers={}, verbose=False):
     """
-    Retrieves a JSON object from a (parameterized) URL.
+    Retrieves a JSON object from a (parametrized) URL.
 
     :param query_url: The base URL to query
     :type query_url: str
@@ -28,8 +29,8 @@ def fetch_json(query_url, params={}, headers={}, silent=True):
     :param headers: Dictionary giving (string) HTTP headers and values
     :type headers: dict
 
-    :param silent:
-    :type silent: bool
+    :param verbose:
+    :type verbose: bool
 
     :return: Response obj (from requests), constructed from the data fetched from that URL.
     :rtype: requests.Response
@@ -41,14 +42,14 @@ def fetch_json(query_url, params={}, headers={}, silent=True):
     encoded_params = urlencode(params)
     url = query_url + encoded_params
 
-    if not silent:
+    if verbose:
         print url
 
     return requests.get(url, headers=headers)
 
 
 def directions_request(origin, destination, sensor='false', mode='driving', waypoints=None, destination_time=None,
-                       arrival_time=None, silent=True):
+                       arrival_time=None, verbose=False):
     """
     Makes a request to Google Maps Api Directions
     See https://developers.google.com/maps/documentation/directions/#DirectionsRequests for additional information
@@ -74,8 +75,8 @@ def directions_request(origin, destination, sensor='false', mode='driving', wayp
     :param arrival_time: Specifies the desired time of arrival for transit directions as seconds since midnight, January 1, 1970 UTC
     :type arrival_time: int
 
-    :param silent:
-    :type silent: bool
+    :param verbose:
+    :type verbose: bool
 
     :return: Dict obj, constructed from the result data
     :rtype: dict
@@ -91,12 +92,12 @@ def directions_request(origin, destination, sensor='false', mode='driving', wayp
         'arrival_time': arrival_time
     }
 
-    response = fetch_json(_DIRECTIONS_QUERY_URL, params=params, silent=silent)
+    response = fetch_json(_DIRECTIONS_QUERY_URL, params=params, verbose=verbose)
     return json.loads(response.text)
 
 
 def distancematrix_request(origins, destinations, sensor='false', mode='driving', waypoints=None, destination_time=None,
-                           arrival_time=None, silent=True):
+                           arrival_time=None, verbose=False):
     """
     Makes a request to Google Maps Api DistanceMatrix
     See https://developers.google.com/maps/documentation/distancematrix/ for additional information
@@ -122,8 +123,8 @@ def distancematrix_request(origins, destinations, sensor='false', mode='driving'
     :param arrival_time: Specifies the desired time of arrival for transit directions as seconds since midnight, January 1, 1970 UTC
     :type arrival_time: int
 
-    :param silent:
-    :type silent: bool
+    :param verbose:
+    :type verbose: bool
 
     :return: Dict obj, constructed from the result data
     :rtype: dict
@@ -139,12 +140,12 @@ def distancematrix_request(origins, destinations, sensor='false', mode='driving'
         'arrival_time': arrival_time
     }
 
-    response = fetch_json(_DISTANCEMATRIX_QUERY_URL, params=params, silent=silent)
+    response = fetch_json(_DISTANCEMATRIX_QUERY_URL, params=params, verbose=verbose)
     return json.loads(response.text)
 
 
 def get_time(origin, destination, sensor='false', mode='driving', waypoints=None, destination_time=None,
-             arrival_time=None, silent=True):
+             arrival_time=None, verbose=False):
     """
     Returns travel time
 
@@ -169,19 +170,19 @@ def get_time(origin, destination, sensor='false', mode='driving', waypoints=None
     :param arrival_time: Specifies the desired time of arrival for transit directions as seconds since midnight, January 1, 1970 UTC
     :type arrival_time: int
 
-    :param silent:
-    :type silent: bool
+    :param verbose:
+    :type verbose: bool
 
     :return: Seconds to travel
     :rtype: int
     """
 
-    return distancematrix_request(origin, destination, sensor, mode, waypoints, destination_time, arrival_time)[
-        'rows'][0]['elements'][0]['duration']['value']
+    return distancematrix_request(origin, destination, sensor, mode, waypoints, destination_time, arrival_time,
+                                  verbose=verbose)['rows'][0]['elements'][0]['duration']['value']
 
 
 def get_distance(origin, destination, sensor='false', mode='driving', waypoints=None, destination_time=None,
-                 arrival_time=None, silent=True):
+                 arrival_time=None, verbose=False):
     """
     Returns distance, in metres
 
@@ -206,15 +207,15 @@ def get_distance(origin, destination, sensor='false', mode='driving', waypoints=
     :param arrival_time: Specifies the desired time of arrival for transit directions as seconds since midnight, January 1, 1970 UTC
     :type arrival_time: int
 
-    :param silent:
-    :type silent: bool
+    :param verbose:
+    :type verbose: bool
 
     :return: Metres to travel
     :rtype: int
     """
 
     return distancematrix_request(origin, destination, sensor, mode, waypoints, destination_time, arrival_time,
-                                  silent=silent)['rows'][0]['elements'][0]['distance']['value']
+                                  verbose=verbose)['rows'][0]['elements'][0]['distance']['value']
 
 
 if __name__ == '__main__':
