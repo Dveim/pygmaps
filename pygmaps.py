@@ -54,7 +54,7 @@ class GoogleMapsError(Exception):
         :param response: The actual response returned from Google, if any.
         :type response: dict
         """
-        Exception.__init__(self, status)
+        super(self).__init__(self, status)
         self.status = status
         self.response = response
 
@@ -75,7 +75,7 @@ class GoogleMapsError(Exception):
         """
         Return a unicode representation of this :exc:`GoogleMapsError`.
         """
-        return unicode(self.__str__())
+        return self.__str__().decode()
 
 
 def fetch_json(query_url, params={}, headers={}, verbose=False):
