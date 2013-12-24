@@ -11,9 +11,12 @@ from urllib import urlencode
 import requests
 
 
-_GEOCODE_QUERY_URL = 'http://maps.googleapis.com/maps/api/geocode/json?'
-_DIRECTIONS_QUERY_URL = 'http://maps.googleapis.com/maps/api/directions/json?'
-_DISTANCEMATRIX_QUERY_URL = 'http://maps.googleapis.com/maps/api/distancematrix/json?'
+GEOCODE_QUERY_URL = 'http://maps.googleapis.com/maps/api/geocode/json?'
+DIRECTIONS_QUERY_URL = 'http://maps.googleapis.com/maps/api/directions/json?'
+DISTANCEMATRIX_QUERY_URL = 'http://maps.googleapis.com/maps/api/distancematrix/json?'
+STATUS_OK = 'OK'
+
+__all__ = ['fetch_json', 'directions_request', 'distancematrix_request', 'get_time', 'get_distance']
 
 
 class GoogleMapsError(Exception):
@@ -73,9 +76,6 @@ class GoogleMapsError(Exception):
         Return a unicode representation of this :exc:`GoogleMapsError`.
         """
         return unicode(self.__str__())
-
-
-STATUS_OK = GoogleMapsError.G_GEO_SUCCESS
 
 
 def fetch_json(query_url, params={}, headers={}, verbose=False):
@@ -180,7 +180,7 @@ def directions_request(origin, destination, sensor='false', mode='driving', wayp
         'arrival_time': arrival_time
     }
 
-    return _make_request(url=_DIRECTIONS_QUERY_URL, params=params, verbose=verbose)
+    return _make_request(url=DIRECTIONS_QUERY_URL, params=params, verbose=verbose)
 
 
 def distancematrix_request(origins, destinations, sensor='false', mode='driving', waypoints=None, destination_time=None,
@@ -227,7 +227,7 @@ def distancematrix_request(origins, destinations, sensor='false', mode='driving'
         'arrival_time': arrival_time
     }
 
-    return _make_request(url=_DISTANCEMATRIX_QUERY_URL, params=params, verbose=verbose)
+    return _make_request(url=DISTANCEMATRIX_QUERY_URL, params=params, verbose=verbose)
 
 
 def get_time(origin, destination, sensor='false', mode='driving', waypoints=None, destination_time=None,
@@ -302,25 +302,3 @@ def get_distance(origin, destination, sensor='false', mode='driving', waypoints=
 
     return distancematrix_request(origin, destination, sensor, mode, waypoints, destination_time, arrival_time,
                                   verbose=verbose)['rows'][0]['elements'][0]['distance']['value']
-
-
-if __name__ == '__main__':
-    def main():
-        # TODO: make those tests
-        '''
-        test_req = 'http://maps.googleapis.com/maps/api/directions/json?origin=Brooklyn&destination=Queens&sensor=false&departure_time=1343641500&mode=transit'
-        a = fetch_json(test_req)
-        print a
-        '''
-
-        '''
-        a = directions_request(origin='Москва', destination='Киев', mode='walking')
-        print a
-        '''
-
-        '''
-        a = directions_request(origin='Київ, Сєченова 6', destination='Київ, Сєченова 9', mode='walking')
-        print a
-        '''
-
-    main()
