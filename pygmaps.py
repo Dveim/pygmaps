@@ -11,7 +11,7 @@ from urllib import urlencode
 import requests
 
 
-GEOCODE_QUERY_URL = 'http://maps.googleapis.com/maps/api/geocode/json?'
+# GEOCODE_QUERY_URL = 'http://maps.googleapis.com/maps/api/geocode/json?'
 DIRECTIONS_QUERY_URL = 'http://maps.googleapis.com/maps/api/directions/json?'
 DISTANCEMATRIX_QUERY_URL = 'http://maps.googleapis.com/maps/api/distancematrix/json?'
 STATUS_OK = 'OK'
